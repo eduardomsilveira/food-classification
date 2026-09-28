@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -47,9 +48,14 @@ def train_epoch(
     loss_fn: nn.Module,
     loader: DataLoader,
     device: str,
+    update_batchnorm_stats: bool = False,
 ) -> EpochMetrics:
     model.train()
     model.features.eval()
+    if update_batchnorm_stats:
+        for module in model.features.modules():
+            if isinstance(module, nn.BatchNorm2d):
+                module.train()
     metrics = _MetricAccumulator()
 
     for images, labels in loader:
@@ -76,7 +82,8 @@ def _evaluation_pass(
     metrics = _MetricAccumulator()
     confusion = (
         torch.zeros((num_classes, num_classes), dtype=torch.int64)
-        if num_classes is not None else None
+        if num_classes is not None
+        else None
     )
     for images, labels in loader:
         images, labels = images.to(device), labels.to(device)
@@ -89,9 +96,9 @@ def _evaluation_pass(
             predictions = logits.argmax(dim=1)
             # Accumulate on CPU to also support strict deterministic CUDA runs.
             indices = labels.cpu() * num_classes + predictions.cpu()
-            confusion += torch.bincount(
-                indices, minlength=num_classes ** 2
-            ).reshape(num_classes, num_classes)
+            confusion += torch.bincount(indices, minlength=num_classes**2).reshape(
+                num_classes, num_classes
+            )
     return metrics.compute(), confusion
 
 
@@ -129,7 +136,8 @@ def evaluate(
         for index, name in enumerate(class_names)
     ]
     return EvaluationResults(
-        **metrics.model_dump(), per_class=per_class,
+        **metrics.model_dump(),
+        per_class=per_class,
         confusion_matrix=confusion.tolist(),
     )
 
@@ -142,21 +150,36 @@ def train(
     train_loader: DataLoader,
     validation_loader: DataLoader,
     device: str,
+    on_epoch_end: Callable[[TrainingResults], None] | None = None,
+    update_batchnorm_stats: bool = False,
 ) -> TrainingResults:
     results = TrainingResults(
-        train_losses=[], validation_losses=[],
-        train_accuracy_top1=[], validation_accuracy_top1=[],
-        train_accuracy_top5=[], validation_accuracy_top5=[],
+        train_losses=[],
+        validation_losses=[],
+        train_accuracy_top1=[],
+        validation_accuracy_top1=[],
+        train_accuracy_top5=[],
+        validation_accuracy_top5=[],
     )
     for epoch in range(n_epochs):
         train_metrics = train_epoch(
-            model=model, optimizer=optimizer, loss_fn=loss_fn,
-            loader=train_loader, device=device,
+            model=model,
+            optimizer=optimizer,
+            loss_fn=loss_fn,
+            loader=train_loader,
+            device=device,
+            update_batchnorm_stats=update_batchnorm_stats,
         )
         validation_metrics = validate_epoch(
-            model=model, loader=validation_loader, loss_fn=loss_fn, device=device,
+            model=model,
+            loader=validation_loader,
+            loss_fn=loss_fn,
+            device=device,
         )
-        for split, metrics in (("train", train_metrics), ("validation", validation_metrics)):
+        for split, metrics in (
+            ("train", train_metrics),
+            ("validation", validation_metrics),
+        ):
             getattr(results, f"{split}_losses").append(metrics.loss)
             getattr(results, f"{split}_accuracy_top1").append(metrics.accuracy_top1)
             getattr(results, f"{split}_accuracy_top5").append(metrics.accuracy_top5)
@@ -165,6 +188,8 @@ def train(
                 f"accuracy-top1={metrics.accuracy_top1:.4f}, "
                 f"accuracy-top5={metrics.accuracy_top5:.4f}"
             )
+        if on_epoch_end is not None:
+            on_epoch_end(results)
     return results
 
 
@@ -236,7 +261,9 @@ def plot_confusion_matrix(
     labels = [item.class_name.replace("_", " ") for item in results.per_class]
     size = max(8, len(labels) * 0.18)
     with plt.rc_context({
-        "text.usetex": True, "font.family": "serif", "font.serif": ["Times"],
+        "text.usetex": True,
+        "font.family": "serif",
+        "font.serif": ["Times"],
         "font.size": 12,
     }):
         fig, ax = plt.subplots(figsize=(size, size), layout="constrained")

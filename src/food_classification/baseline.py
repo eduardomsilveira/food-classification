@@ -16,6 +16,7 @@ from .reproducibility import (
     seed_everything,
     seed_worker,
 )
+from .training_results import TrainingResults
 from .utils import evaluate, plot, plot_confusion_matrix, train
 
 
@@ -105,47 +106,55 @@ def main():
     optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
     loss_fn = nn.CrossEntropyLoss()
 
+    checkpoint_path = Config.output_dir / "baseline.pt"
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+    checkpoint_metadata = {
+        "experiment": "baseline",
+        "architecture": "efficientnet_b0",
+        "num_classes": model.classifier[1].out_features,
+        "class_names": dataset_dict["train"].features["label"].names,
+        "reproducibility": {
+            **reproducibility_metadata(Config.seed, Config.device),
+            "num_workers": Config.num_workers,
+            "loader_seeds": {
+                "train": Config.seed,
+                "validation": Config.seed + 1,
+                "test": Config.seed + 2,
+            },
+        },
+        "dataset_split": {
+            "validation_fraction": Config.validation_fraction,
+            "seed": Config.split_seed,
+            "stratify_by_column": "label",
+            "test_source": "ethz/food101:validation",
+            "sizes": {name: len(split) for name, split in dataset_dict.items()},
+        },
+    }
+
+    def save_epoch(results: TrainingResults) -> None:
+        epoch = len(results.train_losses)
+        checkpoint = {
+            **checkpoint_metadata,
+            "epochs": epoch,
+            "model_state_dict": model.state_dict(),
+        }
+        epoch_path = Config.output_dir / f"baseline_epoch_{epoch:03d}.pt"
+        for path in (epoch_path, checkpoint_path):
+            temporary_path = path.with_suffix(".pt.tmp")
+            torch.save(checkpoint, temporary_path)
+            temporary_path.replace(path)
+        results.save_json(Config.output_dir / "training_results.json")
+
     results = train(
-        n_epochs=20,
+        n_epochs=10,
         model=model,
         optimizer=optimizer,
         loss_fn=loss_fn,
         train_loader=train_loader,
         validation_loader=validation_loader,
         device=Config.device,
+        on_epoch_end=save_epoch,
     )
-
-    checkpoint_path = Config.output_dir / "baseline.pt"
-    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(
-        {
-            "experiment": "baseline",
-            "architecture": "efficientnet_b0",
-            "num_classes": model.classifier[1].out_features,
-            "class_names": dataset_dict["train"].features["label"].names,
-            "epochs": len(results.train_losses),
-            "reproducibility": {
-                **reproducibility_metadata(Config.seed, Config.device),
-                "num_workers": Config.num_workers,
-                "loader_seeds": {
-                    "train": Config.seed,
-                    "validation": Config.seed + 1,
-                    "test": Config.seed + 2,
-                },
-            },
-            "dataset_split": {
-                "validation_fraction": Config.validation_fraction,
-                "seed": Config.split_seed,
-                "stratify_by_column": "label",
-                "test_source": "ethz/food101:validation",
-                "sizes": {name: len(split) for name, split in dataset_dict.items()},
-            },
-            "model_state_dict": model.state_dict(),
-        },
-        checkpoint_path,
-    )
-
-    results.save_json(Config.output_dir / "training_results.json")
 
     test_loader = make_loader(
         dataset=dataset_dict["test"],
