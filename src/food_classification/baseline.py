@@ -1,4 +1,3 @@
-import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,7 +16,7 @@ from .reproducibility import (
     seed_everything,
     seed_worker,
 )
-from .utils import plot, train, validate_epoch
+from .utils import evaluate, plot, plot_confusion_matrix, train
 
 
 @dataclass
@@ -156,22 +155,22 @@ def main():
         seed=Config.seed + 2,
         num_workers=Config.num_workers,
     )
-    test_loss, test_score = validate_epoch(
+    test_results = evaluate(
         model=model,
         loader=test_loader,
         loss_fn=loss_fn,
         device=Config.device,
+        class_names=dataset_dict["train"].features["label"].names,
     )
-    (Config.output_dir / "test_results.json").write_text(
-        json.dumps(
-            {"loss": test_loss, "f1_weighted": test_score}, indent=2, allow_nan=False
-        )
-        + "\n",
-        encoding="utf-8",
+    test_results.save_json(Config.output_dir / "test_results.json")
+    print(
+        f"test: loss={test_results.loss:.4f}, "
+        f"accuracy-top1={test_results.accuracy_top1:.4f}, "
+        f"accuracy-top5={test_results.accuracy_top5:.4f}"
     )
-    print(f"test-loss: {test_loss}, test-score: {test_score}")
 
     plot(results, output_dir=Config.output_dir)
+    plot_confusion_matrix(test_results, output_dir=Config.output_dir)
 
 
 if __name__ == "__main__":
