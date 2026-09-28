@@ -4,6 +4,24 @@ import torchvision.transforms.v2 as transforms
 from torch.utils.data import Dataset
 
 
+def split_food101(
+    dataset_dict: datasets.DatasetDict,
+    validation_fraction: float = 0.2,
+    seed: int = 42,
+) -> datasets.DatasetDict:
+    """Reserve the official validation split for test; split training by class."""
+    train_validation = dataset_dict["train"].train_test_split(
+        test_size=validation_fraction,
+        stratify_by_column="label",
+        seed=seed,
+    )
+    return datasets.DatasetDict({
+        "train": train_validation["train"],
+        "validation": train_validation["test"],
+        "test": dataset_dict["validation"],
+    })
+
+
 class FoodDataset(Dataset):
     def __init__(self, dataset: datasets.Dataset, transform: transforms.Compose):
         self.dataset = dataset

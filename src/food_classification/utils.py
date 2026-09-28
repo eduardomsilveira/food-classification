@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import torch
 from matplotlib.ticker import MaxNLocator
@@ -17,6 +19,7 @@ def train_epoch(
     device: str,
 ) -> tuple[float, float]:
     model.train()
+    model.features.eval()
 
     loss_accum = MeanMetric(nan_strategy="error").to(device=device)
     score_accum = MulticlassF1Score(num_classes=101, average="weighted").to(
@@ -128,7 +131,9 @@ def train(
     )
 
 
-def plot(results: TrainingResults) -> None:
+def plot(results: TrainingResults, output_dir: str | Path = "docs") -> None:
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     epochs = range(1, len(results.train_losses) + 1)
 
     style = {
@@ -142,12 +147,17 @@ def plot(results: TrainingResults) -> None:
         "legend.frameon": False,
     }
     metrics = (
-        (results.train_losses, results.validation_losses, "Loss", "docs/loss.pdf"),
+        (
+            results.train_losses,
+            results.validation_losses,
+            "Loss",
+            output_dir / "loss.pdf",
+        ),
         (
             results.train_scores,
             results.validation_scores,
             "F1-Score Ponderado",
-            "docs/score.pdf",
+            output_dir / "score.pdf",
         ),
     )
 
