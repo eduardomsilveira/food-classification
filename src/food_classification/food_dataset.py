@@ -3,13 +3,14 @@ import torch
 import torchvision.transforms.v2 as transforms
 from torch.utils.data import Dataset
 
+from .reproducibility import DEFAULT_SEED
+
 
 def split_food101(
     dataset_dict: datasets.DatasetDict,
     validation_fraction: float = 0.2,
-    seed: int = 42,
+    seed: int = DEFAULT_SEED,
 ) -> datasets.DatasetDict:
-    """Reserve the official validation split for test; split training by class."""
     train_validation = dataset_dict["train"].train_test_split(
         test_size=validation_fraction,
         stratify_by_column="label",

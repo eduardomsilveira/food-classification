@@ -11,6 +11,7 @@ dependencies = [
     "albumentationsx[gui]>=2.4.10",
     "datasets>=5.0.1",
     "matplotlib>=3.11.2",
+    "numpy>=2.5.3",
     "pydantic>=2.13.5,<3",
     "torch>=2.14.0",
     "torchmetrics>=1.9.0",

@@ -11,6 +11,12 @@ from torch.utils.data import DataLoader
 from torchvision.models.efficientnet import EfficientNet_B0_Weights, efficientnet_b0
 
 from .food_dataset import FoodDataset, split_food101
+from .reproducibility import (
+    DEFAULT_SEED,
+    reproducibility_metadata,
+    seed_everything,
+    seed_worker,
+)
 from .utils import plot, train, validate_epoch
 
 
@@ -22,7 +28,9 @@ class Config:
     batch_size: int = 32
     shuffle: bool = True
     validation_fraction: float = 0.2
-    split_seed: int = 42
+    seed: int = DEFAULT_SEED
+    split_seed: int = DEFAULT_SEED
+    num_workers: int = 0
 
 
 def make_loader(
@@ -30,13 +38,24 @@ def make_loader(
     transform: transforms.Compose,
     batch_size: int,
     shuffle: bool,
+    seed: int = DEFAULT_SEED,
+    num_workers: int = 0,
 ) -> DataLoader:
     food_dataset = FoodDataset(dataset=dataset, transform=transform)
-    loader = DataLoader(dataset=food_dataset, batch_size=batch_size, shuffle=shuffle)
+    loader = DataLoader(
+        dataset=food_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        generator=torch.Generator().manual_seed(seed),
+        worker_init_fn=seed_worker,
+        num_workers=num_workers,
+    )
     return loader
 
 
 def main():
+    seed_everything(Config.seed)
+
     dataset_dict: datasets.DatasetDict = datasets.load_dataset(
         "ethz/food101",
         token=os.environ.get("HF_TOKEN"),
@@ -66,12 +85,16 @@ def main():
         transform=transform,
         batch_size=Config.batch_size,
         shuffle=Config.shuffle,
+        seed=Config.seed,
+        num_workers=Config.num_workers,
     )
     validation_loader = make_loader(
         dataset=dataset_dict["validation"],
         transform=transform,
         batch_size=Config.batch_size,
         shuffle=False,
+        seed=Config.seed + 1,
+        num_workers=Config.num_workers,
     )
 
     model = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
@@ -102,6 +125,15 @@ def main():
             "num_classes": model.classifier[1].out_features,
             "class_names": dataset_dict["train"].features["label"].names,
             "epochs": len(results.train_losses),
+            "reproducibility": {
+                **reproducibility_metadata(Config.seed, Config.device),
+                "num_workers": Config.num_workers,
+                "loader_seeds": {
+                    "train": Config.seed,
+                    "validation": Config.seed + 1,
+                    "test": Config.seed + 2,
+                },
+            },
             "dataset_split": {
                 "validation_fraction": Config.validation_fraction,
                 "seed": Config.split_seed,
@@ -121,6 +153,8 @@ def main():
         transform=transform,
         batch_size=Config.batch_size,
         shuffle=False,
+        seed=Config.seed + 2,
+        num_workers=Config.num_workers,
     )
     test_loss, test_score = validate_epoch(
         model=model,
