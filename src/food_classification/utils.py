@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 from torchmetrics import MeanMetric
 from torchmetrics.classification import MulticlassF1Score
 
+from .training_results import TrainingResults
+
 
 def train_epoch(
     model: nn.Module,
@@ -87,7 +89,7 @@ def train(
     train_loader: DataLoader,
     validation_loader: DataLoader,
     device: str,
-) -> tuple[list[float], ...]:
+) -> TrainingResults:
     train_losses = []
     train_scores = []
 
@@ -118,16 +120,16 @@ def train(
 
         print(f"validation-loss: {loss}, validation-score: {score}")
 
-    return train_losses, train_scores, validation_losses, validation_scores
+    return TrainingResults(
+        train_losses=train_losses,
+        validation_losses=validation_losses,
+        train_scores=train_scores,
+        validation_scores=validation_scores,
+    )
 
 
-def plot(
-    train_losses: list[float],
-    validation_losses: list[float],
-    train_scores: list[float],
-    validation_scores: list[float],
-):
-    epochs = range(1, len(train_losses) + 1)
+def plot(results: TrainingResults) -> None:
+    epochs = range(1, len(results.train_losses) + 1)
 
     style = {
         "text.usetex": True,
@@ -140,8 +142,13 @@ def plot(
         "legend.frameon": False,
     }
     metrics = (
-        (train_losses, validation_losses, "Loss", "docs/loss.pdf"),
-        (train_scores, validation_scores, "F1-Score Ponderado", "docs/score.pdf"),
+        (results.train_losses, results.validation_losses, "Loss", "docs/loss.pdf"),
+        (
+            results.train_scores,
+            results.validation_scores,
+            "F1-Score Ponderado",
+            "docs/score.pdf",
+        ),
     )
 
     with plt.rc_context(style):

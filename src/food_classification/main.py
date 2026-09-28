@@ -74,7 +74,7 @@ def main():
     optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
     loss_fn = nn.CrossEntropyLoss()
 
-    train_losses, train_scores, validation_losses, validation_scores = train(
+    results = train(
         n_epochs=20,
         model=model,
         optimizer=optimizer,
@@ -84,12 +84,8 @@ def main():
         device=Config.device,
     )
 
-    plot(
-        train_losses=train_losses,
-        train_scores=train_scores,
-        validation_losses=validation_losses,
-        validation_scores=validation_scores,
-    )
+    results.save_json("docs/training_results.json")
+    plot(results)
 
 
 if __name__ == "__main__":
