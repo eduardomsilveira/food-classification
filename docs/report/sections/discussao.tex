@@ -1,0 +1,32 @@
+\section{Discussão}
+\label{sec:discussao}
+
+Os resultados mostram que atualizar apenas as estatísticas do Batch
+Normalization não melhorou o desempenho neste experimento. Uma hipótese
+para a queda observada é que a normalização pelas estatísticas dos lotes
+altere as representações do extrator sem permitir a adaptação de seus
+parâmetros de escala e deslocamento. O ganho obtido com
+BN treinável sugere que ajustar esses parâmetros contribuiu
+para adaptar o modelo ao Food-101, mesmo com as convoluções congeladas.
+Entretanto, os experimentos realizados não permitem determinar isoladamente
+a causa da queda em BN estatístico.
+
+As curvas também mostram diferenças na evolução do aprendizado. No
+modelo de referência, a perda de validação atinge seu mínimo na quinta época;
+em BN estatístico, na quarta. Em ambos, a perda de validação termina
+acima do mínimo observado. Em
+BN treinável e BN treinável + SD, a menor perda
+de validação ocorre na décima
+época, indicando que o treinamento ainda apresentou melhora nesse critério
+até o final do período avaliado.
+
+O Stochastic Depth acrescentou um ganho de 0,50 ponto percentual em
+acurácia top-1 de teste, sem aumentar a quantidade de parâmetros treináveis.
+Sua perda final de validação também foi menor que a de
+BN treinável (0,9866 contra 1,0045).
+
+A comparação está limitada a uma execução por configuração, com semente
+fixa e duração de 10 épocas. Assim, não é possível estimar a variabilidade
+dos resultados entre execuções nem afirmar que o ganho adicional do
+Stochastic Depth seja consistente entre sementes. As conclusões se
+restringem às configurações e às condições avaliadas.

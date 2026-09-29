@@ -1,0 +1,27 @@
+\section{Introdução}
+\label{sec:introducao}
+
+A classificação automática de alimentos consiste em identificar a categoria
+de um alimento a partir de sua imagem. Essa tarefa apresenta desafios devido
+à variação de aparência dentro de uma mesma classe e à semelhança visual entre
+classes distintas. Diferentes formas de preparo, apresentação, iluminação e
+enquadramento podem dificultar o reconhecimento. Neste trabalho, o problema
+é tratado como uma tarefa de classificação supervisionada multiclasse, na qual
+cada imagem deve ser associada a uma das 101 categorias do conjunto
+Food-101~\cite{bossard2014food101}.
+
+A abordagem adotada utiliza transferência de aprendizado com uma
+EfficientNet-B0~\cite{tan2019efficientnet} pré-treinada no ImageNet. Sua camada
+de classificação é substituída para atender às categorias do Food-101,
+preservando os pesos das convoluções. Essa configuração permite investigar
+a adaptação de uma rede pré-treinada ao reconhecimento de alimentos sem
+ajustar todos os seus parâmetros.
+
+O objetivo do estudo é avaliar o efeito de diferentes configurações de
+Batch Normalization e Stochastic Depth sobre o desempenho de classificação.
+São comparados quatro experimentos: treinamento apenas do classificador;
+atualização adicional das médias e variâncias do Batch Normalization;
+treinamento também de seus parâmetros de escala e deslocamento; e ativação
+do Stochastic Depth nessa última configuração. A comparação utiliza a mesma
+divisão de dados e considera as acurácias top-1 e top-5, além da análise dos
+erros por classe.

@@ -1,0 +1,40 @@
+\section{Arquitetura do modelo}
+\label{sec:arquitetura}
+
+Foi utilizada a EfficientNet-B0~\cite{tan2019efficientnet}, na implementação
+da biblioteca Torchvision, com pesos pré-treinados no ImageNet. O extrator
+de características contém 16 blocos MBConv, que combinam convoluções
+\textit{depthwise} e pontuais, Batch Normalization e mecanismos
+\textit{squeeze-and-excitation} para recalibrar os canais. A rede utiliza
+ativações SiLU e conexões residuais nos blocos com dimensões compatíveis.
+
+Após a extração de características, uma operação de média global espacial
+produz um vetor com 1.280 componentes por imagem. O classificador contém
+Dropout com probabilidade $0{,}2$ e uma camada linear. A camada original,
+com 1.000 saídas, foi substituída por uma nova camada com 101 saídas,
+inicializada aleatoriamente. Essa camada possui
+$1.280 \times 101 + 101 = 129.381$ parâmetros, incluindo os vieses.
+
+O modelo adaptado possui \textbf{4.136.929 parâmetros}, dos quais 4.007.548
+pertencem ao extrator e 129.381 ao classificador. A
+Tabela~\ref{tab:parametros} apresenta a quantidade treinável em cada
+experimento. A liberação dos parâmetros de escala e deslocamento do Batch
+Normalization acrescenta 42.016 parâmetros ao conjunto otimizado. Suas
+médias e variâncias acumuladas são estatísticas armazenadas pelo modelo e
+não entram nessa contagem. O Stochastic Depth também não adiciona parâmetros.
+
+\begin{table}[ht]
+  \centering
+  \caption{Quantidade de parâmetros do modelo adaptado por experimento.}
+  \label{tab:parametros}
+  \begin{tabular}{lrr}
+    \hline
+    Experimento & Treináveis & Congelados \\
+    \hline
+    Modelo de referência & 129.381 & 4.007.548 \\
+    BN estatístico & 129.381 & 4.007.548 \\
+    BN treinável & 171.397 & 3.965.532 \\
+    BN treinável + SD & 171.397 & 3.965.532 \\
+    \hline
+  \end{tabular}
+\end{table}

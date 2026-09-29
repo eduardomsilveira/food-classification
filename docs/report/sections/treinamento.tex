@@ -1,0 +1,29 @@
+\section{Configuração de treinamento}
+\label{sec:treinamento}
+
+Cada experimento é configurado para 10 épocas, com lotes de 32 imagens e
+embaralhamento do conjunto de treino a cada época. A função de perda é a
+entropia cruzada multiclasse, e o otimizador utilizado é o AdamW, com taxa
+de aprendizado constante de $10^{-3}$ e decaimento de pesos de $10^{-2}$.
+Os demais hiperparâmetros seguem os valores padrão da implementação:
+$\beta_1=0{,}9$, $\beta_2=0{,}999$ e $\epsilon=10^{-8}$. O otimizador recebe
+somente os parâmetros definidos como treináveis em cada configuração,
+conforme a Tabela~\ref{tab:parametros}.
+
+As execuções utilizam PyTorch 2.14.0 e Torchvision 0.29.0, em uma GPU
+NVIDIA GeForce RTX 4050 Laptop GPU, com operações em ponto flutuante de
+32 bits. Cada experimento parte dos pesos pré-treinados no ImageNet e
+de uma nova camada de classificação. Para favorecer a reprodutibilidade,
+é fixada a semente 42 nos geradores aleatórios de Python, NumPy e PyTorch,
+e são habilitados algoritmos determinísticos. O embaralhamento das imagens
+de treino utiliza um gerador aleatório com semente 42. Os conjuntos de
+validação e teste são percorridos em ordem fixa.
+
+Ao final de cada época, o modelo é avaliado no conjunto de validação, e
+são registrados a perda e os valores de acurácia top-1 e top-5 de treino e
+validação. Os pesos do modelo e as estatísticas do Batch Normalization são
+salvos em um arquivo específico para cada época. O conjunto de teste é
+avaliado ao término do treinamento, utilizando o modelo da última época.
+Durante a validação e o teste, o Dropout e o Stochastic Depth ficam
+desativados, e o Batch Normalization utiliza suas estatísticas acumuladas
+sem atualizá-las.

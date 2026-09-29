@@ -1,20 +1,29 @@
 \begin{thebibliography}{}
 
-\bibitem[Boulic and Renault 1991]{boulic:91}
-Boulic, R. and Renault, O. (1991).
-\newblock 3d hierarchies for animation.
-\newblock In Magnenat-Thalmann, N. and Thalmann, D., editors, {\em New Trends
-  in Animation and Visualization}. John Wiley {\&} Sons ltd.
+\bibitem[Bossard et~al. 2014]{bossard2014food101}
+Bossard, L., Guillaumin, M., and Van~Gool, L. (2014).
+\newblock {Food-101} -- mining discriminative components with random forests.
+\newblock In {\em European Conference on Computer Vision}.
 
-\bibitem[Knuth 1984]{knuth:84}
-Knuth, D.~E. (1984).
-\newblock {\em The {\TeX} Book}.
-\newblock Addison-Wesley, 15th edition.
+\bibitem[Huang et~al. 2016]{huang2016stochasticdepth}
+Huang, G., Sun, Y., Liu, Z., Sedra, D., and Weinberger, K. (2016).
+\newblock Deep networks with {Stochastic Depth}.
+\newblock {\em arXiv preprint arXiv:1603.09382}.
 
-\bibitem[Smith and Jones 1999]{smith:99}
-Smith, A. and Jones, B. (1999).
-\newblock On the complexity of computing.
-\newblock In Smith-Jones, A.~B., editor, {\em Advances in Computer Science},
-  pages 555--566. Publishing Press.
+\bibitem[Ioffe and Szegedy 2015]{ioffe2015batchnorm}
+Ioffe, S. and Szegedy, C. (2015).
+\newblock {Batch Normalization}: Accelerating deep network training by reducing
+  internal covariate shift.
+\newblock In {\em Proceedings of the 32nd International Conference on Machine
+  Learning}, volume~37 of {\em Proceedings of Machine Learning Research}, pages
+  448--456. PMLR.
+
+\bibitem[Tan and Le 2019]{tan2019efficientnet}
+Tan, M. and Le, Q. (2019).
+\newblock {EfficientNet}: Rethinking model scaling for convolutional neural
+  networks.
+\newblock In {\em Proceedings of the 36th International Conference on Machine
+  Learning}, volume~97 of {\em Proceedings of Machine Learning Research}, pages
+  6105--6114. PMLR.
 
 \end{thebibliography}

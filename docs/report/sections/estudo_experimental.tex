@@ -1,0 +1,47 @@
+\section{Estudo experimental}
+\label{sec:estudo-experimental}
+
+O estudo compara quatro configurações para avaliar, de forma progressiva,
+o efeito da adaptação do Batch Normalization
+(BN)~\cite{ioffe2015batchnorm} e da ativação do Stochastic Depth (SD). A
+Tabela~\ref{tab:configuracoes-experimentais} resume as diferenças durante
+o treinamento. Em todos os casos, o classificador é treinado e os pesos
+das convoluções permanecem congelados. A divisão dos dados, o
+pré-processamento e os hiperparâmetros de otimização são mantidos iguais.
+
+\begin{table}[ht]
+  \centering
+  \caption{Configurações comparadas durante o treinamento.}
+  \label{tab:configuracoes-experimentais}
+  \begin{tabular}{lccc}
+    \hline
+    Experimento & \shortstack{Estatísticas\\do BN} &
+      \shortstack{Parâmetros\\do BN} & \shortstack{Stochastic\\Depth} \\
+    \hline
+    Modelo de referência & Fixas & Congelados & Desativado \\
+    BN estatístico & Atualizadas & Congelados & Desativado \\
+    BN treinável & Atualizadas & Treináveis & Desativado \\
+    BN treinável + SD & Atualizadas & Treináveis & Ativado \\
+    \hline
+  \end{tabular}
+\end{table}
+
+O modelo de referência utiliza as estatísticas de normalização do
+pré-treinamento. Na configuração BN estatístico, as camadas BN passam a utilizar as
+estatísticas dos lotes durante o treino e a atualizar as médias e variâncias
+acumuladas, mantendo seus parâmetros de escala e deslocamento congelados.
+Na configuração BN treinável, esses parâmetros também são otimizados.
+A configuração BN treinável + SD acrescenta o Stochastic
+Depth~\cite{huang2016stochasticdepth}, que descarta aleatoriamente a
+contribuição de ramos residuais durante o treino. O parâmetro de
+probabilidade é definido como $0{,}2$, e a implementação distribui as
+probabilidades de descarte de forma crescente com a profundidade dos blocos.
+
+As métricas principais são as acurácias top-1 e top-5. A primeira mede a
+proporção de imagens cuja classe correta corresponde à previsão de maior
+escore; a segunda considera um acerto quando a classe correta está entre
+as cinco previsões de maior escore. As curvas de perda e acurácia de treino
+e validação permitem acompanhar a evolução do aprendizado. A avaliação
+final também registra precisão e revocação por classe e uma matriz de
+confusão, com classes reais nas linhas e preditas nas colunas, para examinar
+os erros de classificação.

@@ -1,0 +1,50 @@
+\section{Dataset e preparação dos dados}
+\label{sec:dataset}
+
+O Food-101 reúne 101.000 imagens de alimentos, distribuídas igualmente entre
+101 classes. A divisão oficial contém 750 imagens de treinamento e 250 de
+teste por classe. As imagens de teste foram revisadas manualmente, enquanto
+o conjunto de treinamento preserva ruídos, incluindo exemplos com rótulos
+incorretos~\cite{bossard2014food101}. Neste trabalho, os dados são carregados
+pela biblioteca Hugging Face Datasets, a partir do repositório
+\texttt{ethz/food101}\footnote{\url{https://huggingface.co/datasets/ethz/food101}}.
+
+O repositório disponibiliza dois subconjuntos, denominados \texttt{train} e
+\texttt{validation}. O subconjunto original \texttt{train}, com 75.750
+imagens, foi dividido em dois novos conjuntos: 80\% para treino e 20\% para
+validação, com estratificação por classe e semente aleatória 42. Já o
+subconjunto original \texttt{validation}, com 25.250 imagens, foi utilizado
+integralmente como conjunto de teste, reservado para a avaliação final.
+Portanto, a
+validação utilizada durante o treinamento foi extraída exclusivamente do
+\texttt{train} original. A
+Tabela~\ref{tab:divisao-dados} apresenta a divisão utilizada nos quatro
+experimentos. Os subconjuntos são disjuntos, e a validação é avaliada ao final
+de cada época. Como a validação deriva do conjunto original de treinamento,
+ela também pode conter rótulos incorretos.
+
+\begin{table}[ht]
+  \centering
+  \caption{Distribuição das imagens nos subconjuntos do experimento.}
+  \label{tab:divisao-dados}
+  \begin{tabular}{lrr}
+    \hline
+    Subconjunto & Total de imagens & Imagens por classe \\
+    \hline
+    Treino & 60.600 & 600 \\
+    Validação & 15.150 & 150 \\
+    Teste & 25.250 & 250 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+O pré-processamento é o mesmo nos três subconjuntos. As imagens são
+redimensionadas para que o menor lado tenha 256 pixels, preservando a
+proporção original e utilizando interpolação bicúbica. Em seguida, aplica-se
+um recorte central de $224 \times 224$ pixels. Os valores dos pixels são
+convertidos para ponto flutuante de 32 bits e escalados para $[0,1]$, antes
+da normalização dos canais RGB com médias $(0{,}485;\,0{,}456;\,0{,}406)$ e
+desvios-padrão $(0{,}229;\,0{,}224;\,0{,}225)$, adotados para a entrada do
+modelo pré-treinado no ImageNet. Não são aplicadas transformações aleatórias
+de aumento de dados, mantendo o pré-processamento fixo na comparação entre
+as configurações do modelo.

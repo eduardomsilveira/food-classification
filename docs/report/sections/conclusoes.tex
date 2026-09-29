@@ -1,0 +1,28 @@
+\section{Conclusões}
+\label{sec:conclusoes}
+
+Este trabalho investigou a transferência de aprendizado com EfficientNet-B0
+para a classificação de alimentos no Food-101, mantendo os pesos das
+convoluções congelados. O treinamento do
+classificador em conjunto com os parâmetros de escala e deslocamento do
+Batch Normalization, combinado com Stochastic Depth, apresentou o melhor
+desempenho: 79,43\% de acurácia top-1 e 94,86\% de acurácia top-5 no
+teste. O ganho em top-1 sobre o modelo de referência foi de 6,65 pontos
+percentuais. O treinamento dos 42.016 parâmetros adicionais do Batch
+Normalization, sem Stochastic Depth, já havia proporcionado um ganho de
+6,15 pontos percentuais; a ativação dessa regularização acrescentou
+0,50 ponto percentual.
+
+A atualização apenas das médias e variâncias acumuladas apresentou
+desempenho inferior ao modelo de referência. Nas condições avaliadas, os
+resultados favorecem a adaptação conjunta das estatísticas e dos parâmetros
+do Batch Normalization, em vez da atualização exclusiva das estatísticas.
+Essa observação se limita ao protocolo adotado, com 10 épocas e uma
+semente por configuração, sem permitir estabelecer a estabilidade do ganho
+adicional proporcionado pelo Stochastic Depth.
+
+Como continuidade, propõe-se repetir os experimentos com diferentes
+sementes, avaliar o treinamento por mais épocas e investigar o
+descongelamento parcial das convoluções. Essas comparações poderão
+esclarecer a estabilidade dos ganhos observados e o potencial de uma
+adaptação mais ampla do modelo ao reconhecimento de alimentos.
