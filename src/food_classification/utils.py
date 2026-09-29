@@ -7,6 +7,7 @@ import torch
 from matplotlib.ticker import MaxNLocator
 from torch import nn
 from torch.utils.data import DataLoader
+from torchvision.ops import StochasticDepth
 
 from .training_results import (
     ClassMetrics,
@@ -49,12 +50,17 @@ def train_epoch(
     loader: DataLoader,
     device: str,
     update_batchnorm_stats: bool = False,
+    enable_stochastic_depth: bool = False,
 ) -> EpochMetrics:
     model.train()
     model.features.eval()
     if update_batchnorm_stats:
         for module in model.features.modules():
             if isinstance(module, nn.BatchNorm2d):
+                module.train()
+    if enable_stochastic_depth:
+        for module in model.features.modules():
+            if isinstance(module, StochasticDepth):
                 module.train()
     metrics = _MetricAccumulator()
 
@@ -152,6 +158,7 @@ def train(
     device: str,
     on_epoch_end: Callable[[TrainingResults], None] | None = None,
     update_batchnorm_stats: bool = False,
+    enable_stochastic_depth: bool = False,
 ) -> TrainingResults:
     results = TrainingResults(
         train_losses=[],
@@ -169,6 +176,7 @@ def train(
             loader=train_loader,
             device=device,
             update_batchnorm_stats=update_batchnorm_stats,
+            enable_stochastic_depth=enable_stochastic_depth,
         )
         validation_metrics = validate_epoch(
             model=model,

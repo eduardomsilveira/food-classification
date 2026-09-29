@@ -22,6 +22,8 @@ dependencies = [
 [project.scripts]
 food-classification-baseline = "food_classification.main:main"
 food-classification-batchnorm = "food_classification.batchnorm:main"
+food-classification-weighted-batchnorm = "food_classification.weighted_batchnorm:main"
+food-classification-stochastic-depth = "food_classification.stochastic_depth:main"
 
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
